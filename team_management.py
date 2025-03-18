@@ -92,7 +92,7 @@ def quick_match_update():
                             st.rerun()
 
                     with col6:
-                        st.write(f"G: {st.session_state[f'goals_{player['id']}_home']} | A: {st.session_state[f'assists_{player['id']}_home']}")
+                        st.write(f"G: {st.session_state[f'goals_{player.id}_home']} | A: {st.session_state[f'assists_{player.id}_home']}")
 
             team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
                 
