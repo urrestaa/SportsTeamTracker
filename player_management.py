@@ -37,17 +37,17 @@ def player_management_section():
             # Add team filter
             teams = ['All Teams'] + teams_df['name'].tolist()
             selected_team_filter = st.selectbox(
-                    "Filter by Team",
-                    teams,
-                    key='player_team_filter'
-                )
+                "Filter by Team",
+                teams,
+                key='player_team_filter'
+            )
 
-                # Filter players by team
-                filtered_players = players_df.copy()
-                if selected_team_filter != 'All Teams':
-                    team_data = teams_df[teams_df['name'] == selected_team_filter].iloc[0]
-                    team_id = int(team_data['id'])
-                    filtered_players = filtered_players[filtered_players['team_id'] == team_id]
+            # Filter players by team
+            filtered_players = players_df.copy()
+            if selected_team_filter != 'All Teams':
+                team_data = teams_df[teams_df['name'] == selected_team_filter].iloc[0]
+                team_id = int(team_data['id'])
+                filtered_players = filtered_players[filtered_players['team_id'] == team_id]
 
                 if not filtered_players.empty:
                     selected_player = st.selectbox(
