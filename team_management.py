@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
-from database import add_team, update_team_stats, get_teams, get_players, update_player_stats
+from database import (
+    add_team, update_team_stats, get_teams, get_players, 
+    update_player_stats, get_player_stats
+)
 
 def quick_match_update():
     teams_df = get_teams()
@@ -8,6 +11,7 @@ def quick_match_update():
 
     st.subheader("Quick Match Update")
 
+    # Team selection and score input
     col1, col2 = st.columns(2)
     with col1:
         team1 = st.selectbox("Home Team", teams_df['name'], key='home_team')
@@ -16,6 +20,10 @@ def quick_match_update():
         team2 = st.selectbox("Away Team", teams_df['name'], key='away_team')
         team2_score = st.number_input("Away Team Score", min_value=0, key='away_score')
 
+    if team1 == team2:
+        st.error("Please select different teams")
+        return
+
     # Get team data
     team1_data = teams_df[teams_df['name'] == team1].iloc[0]
     team2_data = teams_df[teams_df['name'] == team2].iloc[0]
@@ -23,114 +31,144 @@ def quick_match_update():
     # Player selections for goals and assists
     st.subheader("Match Statistics")
 
-    # Home team scorers
-    team1_players = players_df[players_df['team_id'] == team1_data['id']]
-    if not team1_players.empty and team1_score > 0:
-        st.write(f"{team1} Scorers")
-        for i in range(int(team1_score)):
-            col1, col2 = st.columns(2)
-            with col1:
-                scorer = st.selectbox(
-                    f"Goal {i+1} Scorer",
-                    team1_players['name'],
-                    key=f'home_scorer_{i}'
-                )
-            with col2:
-                assister = st.selectbox(
-                    f"Goal {i+1} Assist",
-                    ['No Assist'] + team1_players['name'].tolist(),
-                    key=f'home_assist_{i}'
-                )
+    try:
+        # Home team scorers
+        team1_players = players_df[players_df['team_id'] == team1_data['id']]
+        if not team1_players.empty and team1_score > 0:
+            st.write(f"{team1} Scorers")
+            for i in range(int(team1_score)):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.selectbox(
+                        f"Goal {i+1} Scorer",
+                        team1_players['name'].tolist(),
+                        key=f'home_scorer_{i}'
+                    )
+                with col2:
+                    st.selectbox(
+                        f"Goal {i+1} Assist",
+                        ['No Assist'] + team1_players['name'].tolist(),
+                        key=f'home_assist_{i}'
+                    )
 
-    # Away team scorers
-    team2_players = players_df[players_df['team_id'] == team2_data['id']]
-    if not team2_players.empty and team2_score > 0:
-        st.write(f"{team2} Scorers")
-        for i in range(int(team2_score)):
-            col1, col2 = st.columns(2)
-            with col1:
-                scorer = st.selectbox(
-                    f"Goal {i+1} Scorer",
-                    team2_players['name'],
-                    key=f'away_scorer_{i}'
-                )
-            with col2:
-                assister = st.selectbox(
-                    f"Goal {i+1} Assist",
-                    ['No Assist'] + team2_players['name'].tolist(),
-                    key=f'away_assist_{i}'
-                )
+        # Away team scorers
+        team2_players = players_df[players_df['team_id'] == team2_data['id']]
+        if not team2_players.empty and team2_score > 0:
+            st.write(f"{team2} Scorers")
+            for i in range(int(team2_score)):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.selectbox(
+                        f"Goal {i+1} Scorer",
+                        team2_players['name'].tolist(),
+                        key=f'away_scorer_{i}'
+                    )
+                with col2:
+                    st.selectbox(
+                        f"Goal {i+1} Assist",
+                        ['No Assist'] + team2_players['name'].tolist(),
+                        key=f'away_assist_{i}'
+                    )
 
-    if st.button("Update Match Result", type="primary"):
-        with st.spinner("Updating match statistics..."):
-            # Update team statistics
-            if team1_score > team2_score:
-                update_team_stats(team1_data['id'], 
-                                team1_data['wins'] + 1, 
-                                team1_data['draws'], 
-                                team1_data['losses'])
-                update_team_stats(team2_data['id'], 
-                                team2_data['wins'], 
-                                team2_data['draws'], 
-                                team2_data['losses'] + 1)
-            elif team2_score > team1_score:
-                update_team_stats(team2_data['id'], 
-                                team2_data['wins'] + 1, 
-                                team2_data['draws'], 
-                                team2_data['losses'])
-                update_team_stats(team1_data['id'], 
-                                team1_data['wins'], 
-                                team1_data['draws'], 
-                                team1_data['losses'] + 1)
-            else:
-                update_team_stats(team1_data['id'], 
-                                team1_data['wins'], 
-                                team1_data['draws'] + 1, 
-                                team1_data['losses'])
-                update_team_stats(team2_data['id'], 
-                                team2_data['wins'], 
-                                team2_data['draws'] + 1, 
-                                team2_data['losses'])
+        if st.button("Update Match Result", type="primary"):
+            with st.spinner("Updating match statistics..."):
+                try:
+                    # Update team statistics based on match result
+                    if team1_score > team2_score:
+                        update_team_stats(
+                            team1_data['id'],
+                            team1_data['wins'] + 1,
+                            team1_data['draws'],
+                            team1_data['losses']
+                        )
+                        update_team_stats(
+                            team2_data['id'],
+                            team2_data['wins'],
+                            team2_data['draws'],
+                            team2_data['losses'] + 1
+                        )
+                    elif team2_score > team1_score:
+                        update_team_stats(
+                            team2_data['id'],
+                            team2_data['wins'] + 1,
+                            team2_data['draws'],
+                            team2_data['losses']
+                        )
+                        update_team_stats(
+                            team1_data['id'],
+                            team1_data['wins'],
+                            team1_data['draws'],
+                            team1_data['losses'] + 1
+                        )
+                    else:
+                        update_team_stats(
+                            team1_data['id'],
+                            team1_data['wins'],
+                            team1_data['draws'] + 1,
+                            team1_data['losses']
+                        )
+                        update_team_stats(
+                            team2_data['id'],
+                            team2_data['wins'],
+                            team2_data['draws'] + 1,
+                            team2_data['losses']
+                        )
 
-            # Update player statistics
-            if team1_score > 0:
-                for i in range(int(team1_score)):
-                    scorer = st.session_state[f'home_scorer_{i}']
-                    assister = st.session_state[f'home_assist_{i}']
+                    # Update player statistics
+                    for i in range(int(team1_score)):
+                        scorer_name = st.session_state[f'home_scorer_{i}']
+                        assister_name = st.session_state[f'home_assist_{i}']
 
-                    # Update scorer
-                    scorer_data = team1_players[team1_players['name'] == scorer].iloc[0]
-                    update_player_stats(scorer_data['id'], 
-                                    scorer_data['goals'] + 1, 
-                                    scorer_data['assists'])
+                        # Update scorer
+                        scorer = team1_players[team1_players['name'] == scorer_name].iloc[0]
+                        current_stats = get_player_stats(scorer['id'])
+                        update_player_stats(
+                            scorer['id'],
+                            current_stats['goals'] + 1,
+                            current_stats['assists']
+                        )
 
-                    # Update assister if there was one
-                    if assister != 'No Assist':
-                        assister_data = team1_players[team1_players['name'] == assister].iloc[0]
-                        update_player_stats(assister_data['id'], 
-                                        assister_data['goals'], 
-                                        assister_data['assists'] + 1)
+                        # Update assister if any
+                        if assister_name != 'No Assist':
+                            assister = team1_players[team1_players['name'] == assister_name].iloc[0]
+                            current_stats = get_player_stats(assister['id'])
+                            update_player_stats(
+                                assister['id'],
+                                current_stats['goals'],
+                                current_stats['assists'] + 1
+                            )
 
-            if team2_score > 0:
-                for i in range(int(team2_score)):
-                    scorer = st.session_state[f'away_scorer_{i}']
-                    assister = st.session_state[f'away_assist_{i}']
+                    # Update away team scorers and assisters
+                    for i in range(int(team2_score)):
+                        scorer_name = st.session_state[f'away_scorer_{i}']
+                        assister_name = st.session_state[f'away_assist_{i}']
 
-                    # Update scorer
-                    scorer_data = team2_players[team2_players['name'] == scorer].iloc[0]
-                    update_player_stats(scorer_data['id'], 
-                                    scorer_data['goals'] + 1, 
-                                    scorer_data['assists'])
+                        # Update scorer
+                        scorer = team2_players[team2_players['name'] == scorer_name].iloc[0]
+                        current_stats = get_player_stats(scorer['id'])
+                        update_player_stats(
+                            scorer['id'],
+                            current_stats['goals'] + 1,
+                            current_stats['assists']
+                        )
 
-                    # Update assister if there was one
-                    if assister != 'No Assist':
-                        assister_data = team2_players[team2_players['name'] == assister].iloc[0]
-                        update_player_stats(assister_data['id'], 
-                                        assister_data['goals'], 
-                                        assister_data['assists'] + 1)
+                        # Update assister if any
+                        if assister_name != 'No Assist':
+                            assister = team2_players[team2_players['name'] == assister_name].iloc[0]
+                            current_stats = get_player_stats(assister['id'])
+                            update_player_stats(
+                                assister['id'],
+                                current_stats['goals'],
+                                current_stats['assists'] + 1
+                            )
 
-            st.success("Match result updated successfully!")
-            st.experimental_rerun()
+                    st.success("Match result updated successfully!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error updating match result: {str(e)}")
+
+    except Exception as e:
+        st.error(f"Error loading players: {str(e)}")
 
 def team_management_section():
     st.header("Team Management")
@@ -143,7 +181,7 @@ def team_management_section():
                 try:
                     if add_team(team_name):
                         st.success(f"Team {team_name} added successfully!")
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.error("Team already exists!")
                 except Exception as e:
@@ -175,15 +213,20 @@ def team_management_section():
                     try:
                         update_team_stats(team_data['id'], wins, draws, losses)
                         st.success("Statistics updated successfully!")
-                        st.experimental_rerun()
+                        st.rerun()
                     except Exception as e:
                         st.error(f"An error occurred while updating statistics: {e}")
 
         # Display team standings
         st.subheader("Team Standings")
+        teams_df = get_teams()  # Refresh data
         teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
         teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
         teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'] * 100).round(2)
 
         standings = teams_df.sort_values('Points', ascending=False)
-        st.dataframe(standings[['name', 'wins', 'draws', 'losses', 'Points', 'Win Rate']])
+        st.dataframe(
+            standings[['name', 'wins', 'draws', 'losses', 'Points', 'Win Rate']],
+            hide_index=True,
+            use_container_width=True
+        )
