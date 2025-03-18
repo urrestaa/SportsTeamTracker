@@ -74,8 +74,8 @@ def quick_match_update():
                         st.write(f"G: {player['goals']} A: {player['assists']}")
 
         # Away Team Players
-        with st.expander(f"{team2} - Player Stats", expanded=True):
-            team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
+        st.subheader(f"{team2} - Player Stats")
+        team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
 
             if not team2_players.empty:
                 st.write("Click + to add goals/assists")
@@ -181,8 +181,8 @@ def team_management_section():
                     st.warning("Please enter a team name")
 
         # Quick match update section (admin only)
-        with st.expander("Quick Match Update", expanded=True):
-            quick_match_update()
+        st.subheader("Quick Match Update")
+        quick_match_update()
 
         # Edit team statistics (admin only)
         teams_df = get_teams()
