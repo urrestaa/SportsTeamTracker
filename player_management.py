@@ -34,9 +34,9 @@ def player_management_section():
         # Update player statistics (admin only)
         if not players_df.empty:
             st.subheader("Update Player Statistics")
-                # Add team filter
-                teams = ['All Teams'] + teams_df['name'].tolist()
-                selected_team_filter = st.selectbox(
+            # Add team filter
+            teams = ['All Teams'] + teams_df['name'].tolist()
+            selected_team_filter = st.selectbox(
                     "Filter by Team",
                     teams,
                     key='player_team_filter'
