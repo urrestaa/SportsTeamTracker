@@ -175,6 +175,12 @@ def quick_match_update():
         if st.button("Update Match Result", type="primary"):
             with st.spinner("Updating match statistics..."):
                 try:
+                    # Update individual player statistics
+                    for _, player in team1_players.iterrows():
+                        player_goals = st.session_state.get(f"goals_{player.id}_home", 0)
+                        player_assists = st.session_state.get(f"assists_{player.id}_home", 0)
+                        update_player_stats(int(player.id), player_goals, player_assists)
+
                     # Update team statistics based on match result
                     if team1_score > team2_score:
                         update_team_stats(
@@ -219,11 +225,10 @@ def quick_match_update():
                     # Show success message and reset form
                     st.success("Match result updated successfully!")
 
-                    # Reset stats
-                    st.session_state.home_goals = 0
-                    st.session_state.home_assists = 0
-                    st.session_state.away_goals = 0
-                    st.session_state.away_assists = 0
+                    # Clear all stats from session state
+                    for key in list(st.session_state.keys()):
+                        if '_home' in key or '_away' in key:
+                            del st.session_state[key]
                     
                     # Clear session state and use query params to force reset
                     for key in list(st.session_state.keys()):
