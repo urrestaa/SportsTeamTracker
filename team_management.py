@@ -4,8 +4,6 @@ from database import (
     add_team, update_team_stats, get_teams, get_players, 
     update_player_stats, get_player_stats
 )
-
-# Added for role-based access control
 from auth import require_admin
 
 def quick_match_update():
@@ -51,7 +49,7 @@ def quick_match_update():
                 st.session_state[f'away_assist_{i}'] = 'No Assist'
 
         # Home team scorers
-        team1_players = players_df[players_df['team_id'] == team1_data['id']]
+        team1_players = players_df[players_df['team_id'] == int(team1_data['id'])]
         if not team1_players.empty and team1_score > 0:
             st.write(f"{team1} Scorers")
             for i in range(int(team1_score)):
@@ -70,7 +68,7 @@ def quick_match_update():
                     )
 
         # Away team scorers
-        team2_players = players_df[players_df['team_id'] == team2_data['id']]
+        team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
         if not team2_players.empty and team2_score > 0:
             st.write(f"{team2} Scorers")
             for i in range(int(team2_score)):
@@ -188,7 +186,6 @@ def quick_match_update():
     except Exception as e:
         st.error(f"Error loading players: {str(e)}")
 
-
 def team_management_section():
     st.header("Team Management")
 
@@ -254,7 +251,6 @@ def team_management_section():
             )
     else:
         st.info("No teams found. Please contact an administrator to add teams.")
-
 
 # Dummy auth module - Replace with your actual authentication logic
 class auth:

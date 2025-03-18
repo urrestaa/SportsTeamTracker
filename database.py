@@ -37,14 +37,19 @@ def init_db():
 
 def get_teams():
     with get_db_connection() as conn:
-        teams = pd.read_sql_query("SELECT * FROM teams ORDER BY name", conn)
+        teams = pd.read_sql_query("""
+            SELECT *, ROWID as idx 
+            FROM teams 
+            ORDER BY name
+        """, conn)
         return teams
 
 def get_players():
     with get_db_connection() as conn:
         players = pd.read_sql_query("""
             SELECT 
-                players.*,
+                players.*, 
+                players.ROWID as idx,
                 teams.name as team_name 
             FROM players 
             LEFT JOIN teams ON players.team_id = teams.id
