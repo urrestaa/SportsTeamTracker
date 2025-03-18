@@ -3,9 +3,11 @@ from database import init_db
 from team_management import team_management_section
 from player_management import player_management_section
 from visualization import visualization_section
+from auth import init_auth, check_auth, logout
 
-# Initialize the database
+# Initialize the database and auth
 init_db()
+init_auth()
 
 # Set up the main page
 st.set_page_config(
@@ -14,16 +16,26 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Sports Statistics Tracker")
+# Check authentication
+if not check_auth():
+    st.stop()
 
-# Navigation
-page = st.sidebar.radio("Navigation", 
-    ["Overview", "Team Management", "Player Management"])
+# Show logout button if authenticated
+if st.session_state.authenticated:
+    st.sidebar.button("Logout", on_click=logout)
 
-# Display the selected section
-if page == "Overview":
-    visualization_section()
-elif page == "Team Management":
-    team_management_section()
-else:
-    player_management_section()
+    # Show user role
+    role_label = "Admin" if st.session_state.user_role == "admin" else "Guest"
+    st.sidebar.info(f"Logged in as: {role_label}")
+
+    # Navigation
+    page = st.sidebar.radio("Navigation", 
+        ["Overview", "Team Management", "Player Management"])
+
+    # Display the selected section
+    if page == "Overview":
+        visualization_section()
+    elif page == "Team Management":
+        team_management_section()
+    else:
+        player_management_section()

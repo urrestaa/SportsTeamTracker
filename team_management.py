@@ -5,6 +5,9 @@ from database import (
     update_player_stats, get_player_stats
 )
 
+# Added for role-based access control
+from auth import require_admin
+
 def quick_match_update():
     teams_df = get_teams()
     players_df = get_players()
@@ -185,60 +188,62 @@ def quick_match_update():
     except Exception as e:
         st.error(f"Error loading players: {str(e)}")
 
+
 def team_management_section():
     st.header("Team Management")
 
-    # Add new team
-    with st.expander("Add New Team"):
-        team_name = st.text_input("Team Name", key='add_team_name')
-        if st.button("Add Team", key='add_team_button'):
-            if team_name:
-                try:
-                    if add_team(team_name):
-                        st.success(f"Team {team_name} added successfully!")
-                        st.rerun()
-                    else:
-                        st.error("Team already exists!")
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-            else:
-                st.warning("Please enter a team name")
+    # Add new team (admin only)
+    if st.session_state.user_role == "admin":
+        with st.expander("Add New Team"):
+            team_name = st.text_input("Team Name", key='add_team_name')
+            if st.button("Add Team", key='add_team_button'):
+                if team_name:
+                    try:
+                        if add_team(team_name):
+                            st.success(f"Team {team_name} added successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Team already exists!")
+                    except Exception as e:
+                        st.error(f"An error occurred: {e}")
+                else:
+                    st.warning("Please enter a team name")
 
-    # Quick match update section
-    with st.expander("Quick Match Update", expanded=True):
-        quick_match_update()
+        # Quick match update section (admin only)
+        with st.expander("Quick Match Update", expanded=True):
+            quick_match_update()
 
-    # Edit team statistics
+        # Edit team statistics (admin only)
+        teams_df = get_teams()
+        if not teams_df.empty:
+            with st.expander("Update Team Statistics"):
+                selected_team = st.selectbox("Select Team", teams_df['name'].tolist(), key='update_team_select')
+                team_data = teams_df[teams_df['name'] == selected_team].iloc[0]
+
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    wins = st.number_input("Wins", min_value=0, value=int(team_data['wins']), key='wins_input')
+                with col2:
+                    draws = st.number_input("Draws", min_value=0, value=int(team_data['draws']), key='draws_input')
+                with col3:
+                    losses = st.number_input("Losses", min_value=0, value=int(team_data['losses']), key='losses_input')
+
+                if st.button("Update Statistics", key='update_stats_button'):
+                    with st.spinner("Updating team statistics..."):
+                        try:
+                            update_team_stats(int(team_data['id']), wins, draws, losses)
+                            st.success("Statistics updated successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"An error occurred while updating statistics: {e}")
+
+    # Display team standings (visible to all)
+    st.subheader("Team Standings")
     teams_df = get_teams()
     if not teams_df.empty:
-        with st.expander("Update Team Statistics"):
-            selected_team = st.selectbox("Select Team", teams_df['name'].tolist(), key='update_team_select')
-            team_data = teams_df[teams_df['name'] == selected_team].iloc[0]
-
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                wins = st.number_input("Wins", min_value=0, value=int(team_data['wins']), key='wins_input')
-            with col2:
-                draws = st.number_input("Draws", min_value=0, value=int(team_data['draws']), key='draws_input')
-            with col3:
-                losses = st.number_input("Losses", min_value=0, value=int(team_data['losses']), key='losses_input')
-
-            if st.button("Update Statistics", key='update_stats_button'):
-                with st.spinner("Updating team statistics..."):
-                    try:
-                        update_team_stats(int(team_data['id']), wins, draws, losses)
-                        st.success("Statistics updated successfully!")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"An error occurred while updating statistics: {e}")
-
-        # Display team standings
-        st.subheader("Team Standings")
-        teams_df = get_teams()  # Refresh data
-        if not teams_df.empty:
+        with st.spinner("Loading team statistics..."):
             teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
             teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
-            # Avoid division by zero
             teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'].where(teams_df['Matches'] > 0, 1) * 100).round(2)
 
             standings = teams_df.sort_values('Points', ascending=False)
@@ -247,5 +252,16 @@ def team_management_section():
                 hide_index=True,
                 use_container_width=True
             )
-        else:
-            st.info("No teams found. Please add some teams first.")
+    else:
+        st.info("No teams found. Please contact an administrator to add teams.")
+
+
+# Dummy auth module - Replace with your actual authentication logic
+class auth:
+    def require_admin(func):
+        def wrapper(*args, **kwargs):
+            if st.session_state.get('user_role') == 'admin':
+                return func(*args, **kwargs)
+            else:
+                st.error("You do not have permission to access this section.")
+        return wrapper
