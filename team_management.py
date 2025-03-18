@@ -60,6 +60,12 @@ def quick_match_update():
                 # Create a table-like interface for quick updates
                 st.write("Click + to add goals/assists")
                 for _, player in team1_players.iterrows():
+                    # Initialize player-specific stats if not exists
+                    if f"goals_{player['id']}_home" not in st.session_state:
+                        st.session_state[f"goals_{player['id']}_home"] = 0
+                    if f"assists_{player['id']}_home" not in st.session_state:
+                        st.session_state[f"assists_{player['id']}_home"] = 0
+
                     col1, col2, col3, col4, col5, col6 = st.columns([3, 1, 1, 1, 1, 2])
 
                     with col1:
@@ -67,25 +73,26 @@ def quick_match_update():
 
                     with col2:
                         if st.button("+G", key=f"addgoal_{player['id']}_home"):
-                            st.session_state.home_goals = clamp(st.session_state.home_goals + 1, 0, team1_score)
+                            st.session_state[f"goals_{player['id']}_home"] = clamp(st.session_state[f"goals_{player['id']}_home"] + 1, 0, team1_score)
                             st.rerun()
 
                     with col3:
                         if st.button("-G", key=f"substractgoal_{player['id']}_home"):
-                            st.session_state.home_goals = clamp(st.session_state.home_goals - 1, 0, team1_score)
+                            st.session_state[f"goals_{player['id']}_home"] = clamp(st.session_state[f"goals_{player['id']}_home"] - 1, 0, team1_score)
                             st.rerun()
+
                     with col4:
                         if st.button("+A", key=f"addassist_{player['id']}_home"):
-                            st.session_state.home_assists = clamp(st.session_state.home_assists + 1, 0, team1_score)
+                            st.session_state[f"assists_{player['id']}_home"] = clamp(st.session_state[f"assists_{player['id']}_home"] + 1, 0, team1_score)
                             st.rerun()
 
                     with col5:
                         if st.button("-A", key=f"substractassist_{player['id']}_home"):
-                            st.session_state.home_assists = clamp(st.session_state.home_assists - 1, 0, team1_score)
+                            st.session_state[f"assists_{player['id']}_home"] = clamp(st.session_state[f"assists_{player['id']}_home"] - 1, 0, team1_score)
                             st.rerun()
 
                     with col6:
-                        st.write(f"G: {st.session_state.home_goals} | A: {st.session_state.home_assists}")
+                        st.write(f"G: {st.session_state[f'goals_{player['id']}_home']} | A: {st.session_state[f'assists_{player['id']}_home']}")
 
             team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
                 
