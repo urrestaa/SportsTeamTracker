@@ -16,7 +16,7 @@ def quick_match_update():
         st.warning("Please add some teams first")
         return
 
-    # Team selection and score input
+    # Team selection and score input - Mobile friendly layout
     col1, col2 = st.columns(2)
     with col1:
         team1 = st.selectbox("Home Team", teams_df['name'].tolist(), key='home_team')
@@ -33,58 +33,80 @@ def quick_match_update():
     team1_data = teams_df[teams_df['name'] == team1].iloc[0]
     team2_data = teams_df[teams_df['name'] == team2].iloc[0]
 
-    # Player selections for goals and assists
-    st.subheader("Match Statistics")
-
     try:
-        # Initialize session state for scorers and assists
-        for i in range(max(int(team1_score), int(team2_score))):
-            if f'home_scorer_{i}' not in st.session_state:
-                st.session_state[f'home_scorer_{i}'] = None
-            if f'home_assist_{i}' not in st.session_state:
-                st.session_state[f'home_assist_{i}'] = 'No Assist'
-            if f'away_scorer_{i}' not in st.session_state:
-                st.session_state[f'away_scorer_{i}'] = None
-            if f'away_assist_{i}' not in st.session_state:
-                st.session_state[f'away_assist_{i}'] = 'No Assist'
+        # Player Statistics Interface
+        st.subheader("Player Statistics Update")
 
-        # Home team scorers
-        team1_players = players_df[players_df['team_id'] == int(team1_data['id'])]
-        if not team1_players.empty and team1_score > 0:
-            st.write(f"{team1} Scorers")
-            for i in range(int(team1_score)):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.session_state[f'home_scorer_{i}'] = st.selectbox(
-                        f"Goal {i+1} Scorer",
-                        team1_players['name'].tolist(),
-                        key=f'home_scorer_select_{i}'
-                    )
-                with col2:
-                    st.session_state[f'home_assist_{i}'] = st.selectbox(
-                        f"Goal {i+1} Assist",
-                        ['No Assist'] + team1_players['name'].tolist(),
-                        key=f'home_assist_select_{i}'
-                    )
+        # Home Team Players
+        with st.expander(f"{team1} - Player Stats", expanded=True):
+            team1_players = players_df[players_df['team_id'] == int(team1_data['id'])]
 
-        # Away team scorers
-        team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
-        if not team2_players.empty and team2_score > 0:
-            st.write(f"{team2} Scorers")
-            for i in range(int(team2_score)):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.session_state[f'away_scorer_{i}'] = st.selectbox(
-                        f"Goal {i+1} Scorer",
-                        team2_players['name'].tolist(),
-                        key=f'away_scorer_select_{i}'
-                    )
-                with col2:
-                    st.session_state[f'away_assist_{i}'] = st.selectbox(
-                        f"Goal {i+1} Assist",
-                        ['No Assist'] + team2_players['name'].tolist(),
-                        key=f'away_assist_select_{i}'
-                    )
+            if not team1_players.empty:
+                # Create a table-like interface for quick updates
+                st.write("Click + to add goals/assists")
+                for _, player in team1_players.iterrows():
+                    col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+
+                    with col1:
+                        st.write(player['name'])
+
+                    with col2:
+                        if st.button("+G", key=f"goal_{player['id']}_home"):
+                            current_stats = get_player_stats(int(player['id']))
+                            update_player_stats(
+                                int(player['id']),
+                                current_stats['goals'] + 1,
+                                current_stats['assists']
+                            )
+                            st.rerun()
+
+                    with col3:
+                        if st.button("+A", key=f"assist_{player['id']}_home"):
+                            current_stats = get_player_stats(int(player['id']))
+                            update_player_stats(
+                                int(player['id']),
+                                current_stats['goals'],
+                                current_stats['assists'] + 1
+                            )
+                            st.rerun()
+
+                    with col4:
+                        st.write(f"G: {player['goals']} A: {player['assists']}")
+
+        # Away Team Players
+        with st.expander(f"{team2} - Player Stats", expanded=True):
+            team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
+
+            if not team2_players.empty:
+                st.write("Click + to add goals/assists")
+                for _, player in team2_players.iterrows():
+                    col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+
+                    with col1:
+                        st.write(player['name'])
+
+                    with col2:
+                        if st.button("+G", key=f"goal_{player['id']}_away"):
+                            current_stats = get_player_stats(int(player['id']))
+                            update_player_stats(
+                                int(player['id']),
+                                current_stats['goals'] + 1,
+                                current_stats['assists']
+                            )
+                            st.rerun()
+
+                    with col3:
+                        if st.button("+A", key=f"assist_{player['id']}_away"):
+                            current_stats = get_player_stats(int(player['id']))
+                            update_player_stats(
+                                int(player['id']),
+                                current_stats['goals'],
+                                current_stats['assists'] + 1
+                            )
+                            st.rerun()
+
+                    with col4:
+                        st.write(f"G: {player['goals']} A: {player['assists']}")
 
         if st.button("Update Match Result", type="primary"):
             with st.spinner("Updating match statistics..."):
@@ -129,64 +151,6 @@ def quick_match_update():
                             int(team2_data['draws']) + 1,
                             int(team2_data['losses'])
                         )
-
-                    # Update player statistics
-                    for i in range(int(team1_score)):
-                        scorer_name = st.session_state.get(f'home_scorer_{i}')
-                        assister_name = st.session_state.get(f'home_assist_{i}')
-
-                        if scorer_name:
-                            # Update scorer
-                            scorer_data = team1_players[team1_players['name'] == scorer_name]
-                            if not scorer_data.empty:
-                                scorer = scorer_data.iloc[0]
-                                current_stats = get_player_stats(int(scorer['id']))
-                                update_player_stats(
-                                    int(scorer['id']),
-                                    current_stats['goals'] + 1,
-                                    current_stats['assists']
-                                )
-
-                            # Update assister if any
-                            if assister_name and assister_name != 'No Assist':
-                                assister_data = team1_players[team1_players['name'] == assister_name]
-                                if not assister_data.empty:
-                                    assister = assister_data.iloc[0]
-                                    current_stats = get_player_stats(int(assister['id']))
-                                    update_player_stats(
-                                        int(assister['id']),
-                                        current_stats['goals'],
-                                        current_stats['assists'] + 1
-                                    )
-
-                    # Update away team scorers and assisters
-                    for i in range(int(team2_score)):
-                        scorer_name = st.session_state.get(f'away_scorer_{i}')
-                        assister_name = st.session_state.get(f'away_assist_{i}')
-
-                        if scorer_name:
-                            # Update scorer
-                            scorer_data = team2_players[team2_players['name'] == scorer_name]
-                            if not scorer_data.empty:
-                                scorer = scorer_data.iloc[0]
-                                current_stats = get_player_stats(int(scorer['id']))
-                                update_player_stats(
-                                    int(scorer['id']),
-                                    current_stats['goals'] + 1,
-                                    current_stats['assists']
-                                )
-
-                            # Update assister if any
-                            if assister_name and assister_name != 'No Assist':
-                                assister_data = team2_players[team2_players['name'] == assister_name]
-                                if not assister_data.empty:
-                                    assister = assister_data.iloc[0]
-                                    current_stats = get_player_stats(int(assister['id']))
-                                    update_player_stats(
-                                        int(assister['id']),
-                                        current_stats['goals'],
-                                        current_stats['assists'] + 1
-                                    )
 
                     st.success("Match result updated successfully!")
                     st.rerun()
