@@ -7,6 +7,11 @@ from database import (
 )
 from auth import require_admin
 
+home_goals = 0
+home_assists = 0
+away_goals = 0
+away_assists = 0
+
 def quick_match_update():
     teams_df = get_teams()
     players_df = get_players()
@@ -53,6 +58,32 @@ def quick_match_update():
 
                     with col2:
                         if st.button("+G", key=f"goal_{player['id']}_home"):
+                            home_goals += 1
+                            st.rerun()
+
+                    with col3:
+                        if st.button("+A", key=f"assist_{player['id']}_home"):
+                            home_assists += 1
+                            st.rerun()
+
+                    with col4:
+                        st.write(f"G: {home_goals} | A: {home_assists}")
+        
+        """
+        with st.expander(f"{team1} - Player Stats", expanded=True):
+            team1_players = players_df[players_df['team_id'] == int(team1_data['id'])]
+
+            if not team1_players.empty:
+                # Create a table-like interface for quick updates
+                st.write("Click + to add goals/assists")
+                for _, player in team1_players.iterrows():
+                    col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+
+                    with col1:
+                        st.write(player['name'])
+
+                    with col2:
+                        if st.button("+G", key=f"goal_{player['id']}_home"):
                             current_stats = get_player_stats(int(player['id']))
                             update_player_stats(
                                 int(player['id']),
@@ -73,9 +104,12 @@ def quick_match_update():
 
                     with col4:
                         st.write(f"G: {player['goals']} A: {player['assists']}")
+        """
 
         # Away Team Players
-        st.subheader(f"{team2} - Player Stats")
+        
+        
+        """st.subheader(f"{team2} - Player Stats")
         team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
 
         if not team2_players.empty:
@@ -108,6 +142,7 @@ def quick_match_update():
 
                 with col4:
                     st.write(f"G: {player['goals']} A: {player['assists']}")
+        """
 
         if st.button("Update Match Result", type="primary"):
             with st.spinner("Updating match statistics..."):
@@ -155,6 +190,12 @@ def quick_match_update():
 
                     # Show success message and reset form
                     st.success("Match result updated successfully!")
+
+                    home_goals = 0
+                    home_assists = 0
+                    away_goals = 0
+                    away_assists = 0
+                    
                     # Clear session state and use query params to force reset
                     for key in list(st.session_state.keys()):
                         if key.startswith(('home_', 'away_')):
@@ -188,7 +229,6 @@ def team_management_section():
                     st.warning("Please enter a team name")
 
         # Quick match update section (admin only)
-        st.subheader("Quick Match Update")
         quick_match_update()
 
         # Edit team statistics (admin only)
