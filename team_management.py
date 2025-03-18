@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 from database import (
     add_team, update_team_stats, get_teams, get_players, 
     update_player_stats, get_player_stats
@@ -152,12 +153,13 @@ def quick_match_update():
                             int(team2_data['losses'])
                         )
 
-                    # Reset form values and show success message
+                    # Show success message and reset form
                     st.success("Match result updated successfully!")
-                    st.session_state.home_team = teams_df['name'].iloc[0]
-                    st.session_state.away_team = teams_df['name'].iloc[0]
-                    st.session_state.home_score = 0
-                    st.session_state.away_score = 0
+                    # Clear session state and use query params to force reset
+                    for key in list(st.session_state.keys()):
+                        if key.startswith(('home_', 'away_')):
+                            del st.session_state[key]
+                    st.experimental_set_query_params(reset=str(datetime.now().timestamp()))
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error updating match result: {str(e)}")
