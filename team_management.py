@@ -177,9 +177,10 @@ def quick_match_update():
                 try:
                     # Update individual player statistics
                     for _, player in team1_players.iterrows():
-                        player_goals = st.session_state.get(f"goals_{player.id}_home", 0)
-                        player_assists = st.session_state.get(f"assists_{player.id}_home", 0)
-                        update_player_stats(int(player.id), player_goals, player_assists)
+                        current_stats = get_player_stats(int(player.id))
+                        new_goals = current_stats['goals'] + st.session_state.get(f"goals_{player.id}_home", 0)
+                        new_assists = current_stats['assists'] + st.session_state.get(f"assists_{player.id}_home", 0)
+                        update_player_stats(int(player.id), new_goals, new_assists)
 
                     # Update team statistics based on match result
                     if team1_score > team2_score:
