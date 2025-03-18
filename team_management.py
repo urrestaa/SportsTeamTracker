@@ -7,12 +7,13 @@ from database import (
 )
 from auth import require_admin
 
-home_goals = 0
-home_assists = 0
-away_goals = 0
-away_assists = 0
-
 def quick_match_update():
+    # Initialize score tracking variables
+    if 'home_goals' not in st.session_state:
+        st.session_state.home_goals = 0
+        st.session_state.home_assists = 0
+        st.session_state.away_goals = 0
+        st.session_state.away_assists = 0
     teams_df = get_teams()
     players_df = get_players()
 
@@ -58,16 +59,16 @@ def quick_match_update():
 
                     with col2:
                         if st.button("+G", key=f"goal_{player['id']}_home"):
-                            home_goals += 1
+                            st.session_state.home_goals += 1
                             st.rerun()
 
                     with col3:
                         if st.button("+A", key=f"assist_{player['id']}_home"):
-                            home_assists += 1
+                            st.session_state.home_assists += 1
                             st.rerun()
 
                     with col4:
-                        st.write(f"G: {home_goals} | A: {home_assists}")
+                        st.write(f"G: {st.session_state.home_goals} | A: {st.session_state.home_assists}")
         
         """
         with st.expander(f"{team1} - Player Stats", expanded=True):
@@ -191,10 +192,11 @@ def quick_match_update():
                     # Show success message and reset form
                     st.success("Match result updated successfully!")
 
-                    home_goals = 0
-                    home_assists = 0
-                    away_goals = 0
-                    away_assists = 0
+                    # Reset stats
+                    st.session_state.home_goals = 0
+                    st.session_state.home_assists = 0
+                    st.session_state.away_goals = 0
+                    st.session_state.away_assists = 0
                     
                     # Clear session state and use query params to force reset
                     for key in list(st.session_state.keys()):
