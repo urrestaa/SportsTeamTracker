@@ -82,31 +82,31 @@ def quick_match_update():
             for _, player in team2_players.iterrows():
                 col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
 
-                    with col1:
-                        st.write(player['name'])
+                with col1:
+                    st.write(player['name'])
 
-                    with col2:
-                        if st.button("+G", key=f"goal_{player['id']}_away"):
-                            current_stats = get_player_stats(int(player['id']))
-                            update_player_stats(
-                                int(player['id']),
-                                current_stats['goals'] + 1,
-                                current_stats['assists']
-                            )
-                            st.rerun()
+                with col2:
+                    if st.button("+G", key=f"goal_{player['id']}_away"):
+                        current_stats = get_player_stats(int(player['id']))
+                        update_player_stats(
+                            int(player['id']),
+                            current_stats['goals'] + 1,
+                            current_stats['assists']
+                        )
+                        st.rerun()
 
-                    with col3:
-                        if st.button("+A", key=f"assist_{player['id']}_away"):
-                            current_stats = get_player_stats(int(player['id']))
-                            update_player_stats(
-                                int(player['id']),
-                                current_stats['goals'],
-                                current_stats['assists'] + 1
-                            )
-                            st.rerun()
+                with col3:
+                    if st.button("+A", key=f"assist_{player['id']}_away"):
+                        current_stats = get_player_stats(int(player['id']))
+                        update_player_stats(
+                            int(player['id']),
+                            current_stats['goals'],
+                            current_stats['assists'] + 1
+                        )
+                        st.rerun()
 
-                    with col4:
-                        st.write(f"G: {player['goals']} A: {player['assists']}")
+                with col4:
+                    st.write(f"G: {player['goals']} A: {player['assists']}")
 
         if st.button("Update Match Result", type="primary"):
             with st.spinner("Updating match statistics..."):
