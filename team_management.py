@@ -77,8 +77,8 @@ def quick_match_update():
         st.subheader(f"{team2} - Player Stats")
         team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
 
-            if not team2_players.empty:
-                st.write("Click + to add goals/assists")
+        if not team2_players.empty:
+            st.write("Click + to add goals/assists")
                 for _, player in team2_players.iterrows():
                     col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
 
