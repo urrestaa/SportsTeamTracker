@@ -79,8 +79,8 @@ def quick_match_update():
 
         if not team2_players.empty:
             st.write("Click + to add goals/assists")
-                for _, player in team2_players.iterrows():
-                    col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+            for _, player in team2_players.iterrows():
+                col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
 
                     with col1:
                         st.write(player['name'])
