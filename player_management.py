@@ -10,30 +10,30 @@ def player_management_section():
 
     # Add new player (admin only)
     if st.session_state.user_role == "admin":
-        with st.expander("Add New Player"):
-            player_name = st.text_input("Player Name", key='new_player_name')
-            if not teams_df.empty:
-                team = st.selectbox("Select Team", teams_df['name'].tolist(), key='add_player_team')
-                team_data = teams_df[teams_df['name'] == team].iloc[0]
-                team_id = int(team_data['id'])
+        st.subheader("Add New Player")
+        player_name = st.text_input("Player Name", key='new_player_name')
+        if not teams_df.empty:
+            team = st.selectbox("Select Team", teams_df['name'].tolist(), key='add_player_team')
+            team_data = teams_df[teams_df['name'] == team].iloc[0]
+            team_id = int(team_data['id'])
 
-                if st.button("Add Player", key='add_player_button'):
-                    with st.spinner("Adding new player..."):
-                        if player_name:
-                            try:
-                                add_player(player_name, team_id)
-                                st.success(f"Player {player_name} added successfully!")
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Error adding player: {str(e)}")
-                        else:
-                            st.warning("Please enter a player name")
-            else:
-                st.warning("Please add teams first")
+            if st.button("Add Player", key='add_player_button'):
+                with st.spinner("Adding new player..."):
+                    if player_name:
+                        try:
+                            add_player(player_name, team_id)
+                            st.success(f"Player {player_name} added successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error adding player: {str(e)}")
+                    else:
+                        st.warning("Please enter a player name")
+        else:
+            st.warning("Please add teams first")
 
         # Update player statistics (admin only)
         if not players_df.empty:
-            with st.expander("Update Player Statistics", expanded=True):
+            st.subheader("Update Player Statistics")
                 # Add team filter
                 teams = ['All Teams'] + teams_df['name'].tolist()
                 selected_team_filter = st.selectbox(
