@@ -65,7 +65,8 @@ def quick_match_update():
 
                     with col3:
                         if st.button("-G", key=f"substractgoal_{player['id']}_home"):
-                            st.session_state.home_goals = math.clamp(st.session_state.home_goals - 1, 0, team1_score)                            st.rerun()
+                            st.session_state.home_goals = math.clamp(st.session_state.home_goals - 1, 0, team1_score)
+                            st.rerun()
                     with col4:
                         if st.button("+A", key=f"addassist_{player['id']}_home"):
                             st.session_state.home_assists = math.clamp(st.session_state.home_assists + 1, 0, team1_score)
