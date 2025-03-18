@@ -11,13 +11,17 @@ def quick_match_update():
 
     st.subheader("Quick Match Update")
 
+    if teams_df.empty:
+        st.warning("Please add some teams first")
+        return
+
     # Team selection and score input
     col1, col2 = st.columns(2)
     with col1:
-        team1 = st.selectbox("Home Team", teams_df['name'], key='home_team')
+        team1 = st.selectbox("Home Team", teams_df['name'].tolist(), key='home_team')
         team1_score = st.number_input("Home Team Score", min_value=0, key='home_score')
     with col2:
-        team2 = st.selectbox("Away Team", teams_df['name'], key='away_team')
+        team2 = st.selectbox("Away Team", teams_df['name'].tolist(), key='away_team')
         team2_score = st.number_input("Away Team Score", min_value=0, key='away_score')
 
     if team1 == team2:
@@ -76,42 +80,42 @@ def quick_match_update():
                     # Update team statistics based on match result
                     if team1_score > team2_score:
                         update_team_stats(
-                            team1_data['id'],
-                            team1_data['wins'] + 1,
-                            team1_data['draws'],
-                            team1_data['losses']
+                            int(team1_data['id']),
+                            int(team1_data['wins']) + 1,
+                            int(team1_data['draws']),
+                            int(team1_data['losses'])
                         )
                         update_team_stats(
-                            team2_data['id'],
-                            team2_data['wins'],
-                            team2_data['draws'],
-                            team2_data['losses'] + 1
+                            int(team2_data['id']),
+                            int(team2_data['wins']),
+                            int(team2_data['draws']),
+                            int(team2_data['losses']) + 1
                         )
                     elif team2_score > team1_score:
                         update_team_stats(
-                            team2_data['id'],
-                            team2_data['wins'] + 1,
-                            team2_data['draws'],
-                            team2_data['losses']
+                            int(team2_data['id']),
+                            int(team2_data['wins']) + 1,
+                            int(team2_data['draws']),
+                            int(team2_data['losses'])
                         )
                         update_team_stats(
-                            team1_data['id'],
-                            team1_data['wins'],
-                            team1_data['draws'],
-                            team1_data['losses'] + 1
+                            int(team1_data['id']),
+                            int(team1_data['wins']),
+                            int(team1_data['draws']),
+                            int(team1_data['losses']) + 1
                         )
                     else:
                         update_team_stats(
-                            team1_data['id'],
-                            team1_data['wins'],
-                            team1_data['draws'] + 1,
-                            team1_data['losses']
+                            int(team1_data['id']),
+                            int(team1_data['wins']),
+                            int(team1_data['draws']) + 1,
+                            int(team1_data['losses'])
                         )
                         update_team_stats(
-                            team2_data['id'],
-                            team2_data['wins'],
-                            team2_data['draws'] + 1,
-                            team2_data['losses']
+                            int(team2_data['id']),
+                            int(team2_data['wins']),
+                            int(team2_data['draws']) + 1,
+                            int(team2_data['losses'])
                         )
 
                     # Update player statistics
@@ -121,9 +125,9 @@ def quick_match_update():
 
                         # Update scorer
                         scorer = team1_players[team1_players['name'] == scorer_name].iloc[0]
-                        current_stats = get_player_stats(scorer['id'])
+                        current_stats = get_player_stats(int(scorer['id']))
                         update_player_stats(
-                            scorer['id'],
+                            int(scorer['id']),
                             current_stats['goals'] + 1,
                             current_stats['assists']
                         )
@@ -131,9 +135,9 @@ def quick_match_update():
                         # Update assister if any
                         if assister_name != 'No Assist':
                             assister = team1_players[team1_players['name'] == assister_name].iloc[0]
-                            current_stats = get_player_stats(assister['id'])
+                            current_stats = get_player_stats(int(assister['id']))
                             update_player_stats(
-                                assister['id'],
+                                int(assister['id']),
                                 current_stats['goals'],
                                 current_stats['assists'] + 1
                             )
@@ -145,9 +149,9 @@ def quick_match_update():
 
                         # Update scorer
                         scorer = team2_players[team2_players['name'] == scorer_name].iloc[0]
-                        current_stats = get_player_stats(scorer['id'])
+                        current_stats = get_player_stats(int(scorer['id']))
                         update_player_stats(
-                            scorer['id'],
+                            int(scorer['id']),
                             current_stats['goals'] + 1,
                             current_stats['assists']
                         )
@@ -155,9 +159,9 @@ def quick_match_update():
                         # Update assister if any
                         if assister_name != 'No Assist':
                             assister = team2_players[team2_players['name'] == assister_name].iloc[0]
-                            current_stats = get_player_stats(assister['id'])
+                            current_stats = get_player_stats(int(assister['id']))
                             update_player_stats(
-                                assister['id'],
+                                int(assister['id']),
                                 current_stats['goals'],
                                 current_stats['assists'] + 1
                             )
@@ -175,7 +179,7 @@ def team_management_section():
 
     # Add new team
     with st.expander("Add New Team"):
-        team_name = st.text_input("Team Name")
+        team_name = st.text_input("Team Name", key='add_team_name')
         if st.button("Add Team", key='add_team_button'):
             if team_name:
                 try:
@@ -197,7 +201,7 @@ def team_management_section():
     teams_df = get_teams()
     if not teams_df.empty:
         with st.expander("Update Team Statistics"):
-            selected_team = st.selectbox("Select Team", teams_df['name'], key='update_team_select')
+            selected_team = st.selectbox("Select Team", teams_df['name'].tolist(), key='update_team_select')
             team_data = teams_df[teams_df['name'] == selected_team].iloc[0]
 
             col1, col2, col3 = st.columns(3)
@@ -211,7 +215,7 @@ def team_management_section():
             if st.button("Update Statistics", key='update_stats_button'):
                 with st.spinner("Updating team statistics..."):
                     try:
-                        update_team_stats(team_data['id'], wins, draws, losses)
+                        update_team_stats(int(team_data['id']), wins, draws, losses)
                         st.success("Statistics updated successfully!")
                         st.rerun()
                     except Exception as e:
@@ -220,13 +224,16 @@ def team_management_section():
         # Display team standings
         st.subheader("Team Standings")
         teams_df = get_teams()  # Refresh data
-        teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
-        teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
-        teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'] * 100).round(2)
+        if not teams_df.empty:
+            teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
+            teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
+            teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'] * 100).round(2)
 
-        standings = teams_df.sort_values('Points', ascending=False)
-        st.dataframe(
-            standings[['name', 'wins', 'draws', 'losses', 'Points', 'Win Rate']],
-            hide_index=True,
-            use_container_width=True
-        )
+            standings = teams_df.sort_values('Points', ascending=False)
+            st.dataframe(
+                standings[['name', 'wins', 'draws', 'losses', 'Points', 'Win Rate']],
+                hide_index=True,
+                use_container_width=True
+            )
+        else:
+            st.info("No teams found. Please add some teams first.")

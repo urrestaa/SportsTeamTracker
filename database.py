@@ -18,11 +18,7 @@ def init_db():
     with get_db_connection() as conn:
         c = conn.cursor()
 
-        # Drop existing tables to start fresh
-        c.execute("DROP TABLE IF EXISTS players")
-        c.execute("DROP TABLE IF EXISTS teams")
-
-        # Create teams table
+        # Create teams table if it doesn't exist
         c.execute('''CREATE TABLE IF NOT EXISTS teams
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                       name TEXT UNIQUE,
@@ -30,7 +26,7 @@ def init_db():
                       draws INTEGER DEFAULT 0,
                       losses INTEGER DEFAULT 0)''')
 
-        # Create players table
+        # Create players table if it doesn't exist
         c.execute('''CREATE TABLE IF NOT EXISTS players
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                       name TEXT,
@@ -41,7 +37,7 @@ def init_db():
 
 def get_teams():
     with get_db_connection() as conn:
-        teams = pd.read_sql_query("SELECT * FROM teams ORDER BY id", conn)
+        teams = pd.read_sql_query("SELECT * FROM teams ORDER BY name", conn)
         return teams
 
 def get_players():
@@ -52,7 +48,7 @@ def get_players():
                 teams.name as team_name 
             FROM players 
             LEFT JOIN teams ON players.team_id = teams.id
-            ORDER BY players.id
+            ORDER BY players.name
         """, conn)
         return players
 
@@ -68,13 +64,16 @@ def add_team(name):
 def update_team_stats(team_id, wins, draws, losses):
     with get_db_connection() as conn:
         c = conn.cursor()
+        # First verify the team exists
+        c.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
+        if not c.fetchone():
+            raise ValueError(f"No team found with ID {team_id}")
+
         c.execute("""
             UPDATE teams 
             SET wins=?, draws=?, losses=? 
             WHERE id=?
         """, (wins, draws, losses, team_id))
-        if c.rowcount == 0:
-            raise ValueError(f"No team found with ID {team_id}")
 
 def add_player(name, team_id):
     with get_db_connection() as conn:
