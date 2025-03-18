@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import math
 from datetime import datetime
 from database import (
     add_team, update_team_stats, get_teams, get_players, 
@@ -52,22 +53,30 @@ def quick_match_update():
                 # Create a table-like interface for quick updates
                 st.write("Click + to add goals/assists")
                 for _, player in team1_players.iterrows():
-                    col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+                    col1, col2, col3, col4, col5, col6 = st.columns([3, 1, 1, 1, 1, 2])
 
                     with col1:
                         st.write(player['name'])
 
                     with col2:
-                        if st.button("+G", key=f"goal_{player['id']}_home"):
-                            st.session_state.home_goals += 1
+                        if st.button("+G", key=f"addgoal_{player['id']}_home"):
+                            st.session_state.home_goals = math.clamp(st.session_state.home_goals + 1, 0, team1_score)
                             st.rerun()
 
                     with col3:
-                        if st.button("+A", key=f"assist_{player['id']}_home"):
-                            st.session_state.home_assists += 1
+                        if st.button("-G", key=f"substractgoal_{player['id']}_home"):
+                            st.session_state.home_goals = math.clamp(st.session_state.home_goals - 1, 0, team1_score)                            st.rerun()
+                    with col4:
+                        if st.button("+A", key=f"addassist_{player['id']}_home"):
+                            st.session_state.home_assists = math.clamp(st.session_state.home_assists + 1, 0, team1_score)
                             st.rerun()
 
-                    with col4:
+                    with col5:
+                        if st.button("-A", key=f"substractassist_{player['id']}_home"):
+                            st.session_state.home_assists = math.clamp(st.session_state.home_assists - 1, 0, team1_score)
+                            st.rerun()
+
+                    with col6:
                         st.write(f"G: {st.session_state.home_goals} | A: {st.session_state.home_assists}")
         
         """
