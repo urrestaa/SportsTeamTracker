@@ -153,6 +153,11 @@ def quick_match_update():
                         )
 
                     st.success("Match result updated successfully!")
+                    # Reset the input values
+                    st.session_state.home_score = 0
+                    st.session_state.away_score = 0
+                    st.session_state.home_team = teams_df['name'].iloc[0]
+                    st.session_state.away_team = teams_df['name'].iloc[0]
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error updating match result: {str(e)}")
