@@ -152,9 +152,12 @@ def quick_match_update():
                             int(team2_data['losses'])
                         )
 
-                    # Clear the form by using query parameters
+                    # Reset form values and show success message
                     st.success("Match result updated successfully!")
-                    st.experimental_set_query_params(reset='true')
+                    st.session_state.home_team = teams_df['name'].iloc[0]
+                    st.session_state.away_team = teams_df['name'].iloc[0]
+                    st.session_state.home_score = 0
+                    st.session_state.away_score = 0
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error updating match result: {str(e)}")
