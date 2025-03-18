@@ -40,11 +40,10 @@ def player_management_section():
             )
 
             # Filter players by team
+            filtered_players = players_df.copy()
             if selected_team_filter != 'All Teams':
                 team_id = teams_df[teams_df['name'] == selected_team_filter]['id'].iloc[0]
-                filtered_players = players_df[players_df['team_id'] == team_id].copy()
-            else:
-                filtered_players = players_df.copy()
+                filtered_players = filtered_players[filtered_players['team_id'] == team_id]
 
             if not filtered_players.empty:
                 selected_player = st.selectbox(
@@ -92,25 +91,24 @@ def player_management_section():
         )
 
         # Filter and display statistics
+        display_stats = players_df.copy()
         if display_team_filter != 'All Teams':
             team_id = teams_df[teams_df['name'] == display_team_filter]['id'].iloc[0]
-            stats = players_df[players_df['team_id'] == team_id].copy()
-        else:
-            stats = players_df.copy()
+            display_stats = display_stats[display_stats['team_id'] == team_id]
 
-        if not stats.empty:
+        if not display_stats.empty:
             # Calculate total contributions
-            stats['Total Contributions'] = stats['goals'] + stats['assists']
+            display_stats['Total Contributions'] = display_stats['goals'] + display_stats['assists']
 
             # Sort players by goals, then assists
-            stats = stats.sort_values(
+            display_stats = display_stats.sort_values(
                 ['goals', 'assists', 'Total Contributions'],
                 ascending=[False, False, False]
             )
 
             # Display statistics
             st.dataframe(
-                stats[['name', 'team_name', 'goals', 'assists', 'Total Contributions']],
+                display_stats[['name', 'team_name', 'goals', 'assists', 'Total Contributions']],
                 hide_index=True,
                 use_container_width=True
             )

@@ -36,6 +36,17 @@ def quick_match_update():
     st.subheader("Match Statistics")
 
     try:
+        # Initialize session state for scorers and assists
+        for i in range(10):  # Pre-initialize for up to 10 goals per team
+            if f'home_scorer_{i}' not in st.session_state:
+                st.session_state[f'home_scorer_{i}'] = None
+            if f'home_assist_{i}' not in st.session_state:
+                st.session_state[f'home_assist_{i}'] = 'No Assist'
+            if f'away_scorer_{i}' not in st.session_state:
+                st.session_state[f'away_scorer_{i}'] = None
+            if f'away_assist_{i}' not in st.session_state:
+                st.session_state[f'away_assist_{i}'] = 'No Assist'
+
         # Home team scorers
         team1_players = players_df[players_df['team_id'] == team1_data['id']]
         if not team1_players.empty and team1_score > 0:
@@ -43,16 +54,16 @@ def quick_match_update():
             for i in range(int(team1_score)):
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.selectbox(
+                    st.session_state[f'home_scorer_{i}'] = st.selectbox(
                         f"Goal {i+1} Scorer",
                         team1_players['name'].tolist(),
-                        key=f'home_scorer_{i}'
+                        key=f'home_scorer_select_{i}'
                     )
                 with col2:
-                    st.selectbox(
+                    st.session_state[f'home_assist_{i}'] = st.selectbox(
                         f"Goal {i+1} Assist",
                         ['No Assist'] + team1_players['name'].tolist(),
-                        key=f'home_assist_{i}'
+                        key=f'home_assist_select_{i}'
                     )
 
         # Away team scorers
@@ -62,16 +73,16 @@ def quick_match_update():
             for i in range(int(team2_score)):
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.selectbox(
+                    st.session_state[f'away_scorer_{i}'] = st.selectbox(
                         f"Goal {i+1} Scorer",
                         team2_players['name'].tolist(),
-                        key=f'away_scorer_{i}'
+                        key=f'away_scorer_select_{i}'
                     )
                 with col2:
-                    st.selectbox(
+                    st.session_state[f'away_assist_{i}'] = st.selectbox(
                         f"Goal {i+1} Assist",
                         ['No Assist'] + team2_players['name'].tolist(),
-                        key=f'away_assist_{i}'
+                        key=f'away_assist_select_{i}'
                     )
 
         if st.button("Update Match Result", type="primary"):
@@ -227,7 +238,8 @@ def team_management_section():
         if not teams_df.empty:
             teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
             teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
-            teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'] * 100).round(2)
+            # Avoid division by zero
+            teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'].where(teams_df['Matches'] > 0, 1) * 100).round(2)
 
             standings = teams_df.sort_values('Points', ascending=False)
             st.dataframe(
