@@ -14,7 +14,8 @@ def player_management_section():
             player_name = st.text_input("Player Name", key='new_player_name')
             if not teams_df.empty:
                 team = st.selectbox("Select Team", teams_df['name'].tolist(), key='add_player_team')
-                team_id = teams_df[teams_df['name'] == team]['id'].iloc[0]
+                team_data = teams_df[teams_df['name'] == team].iloc[0]
+                team_id = int(team_data['id'])
 
                 if st.button("Add Player", key='add_player_button'):
                     with st.spinner("Adding new player..."):
@@ -44,7 +45,8 @@ def player_management_section():
                 # Filter players by team
                 filtered_players = players_df.copy()
                 if selected_team_filter != 'All Teams':
-                    team_id = teams_df[teams_df['name'] == selected_team_filter]['id'].iloc[0]
+                    team_data = teams_df[teams_df['name'] == selected_team_filter].iloc[0]
+                    team_id = int(team_data['id'])
                     filtered_players = filtered_players[filtered_players['team_id'] == team_id]
 
                 if not filtered_players.empty:
@@ -97,7 +99,8 @@ def player_management_section():
         # Filter and display statistics
         display_stats = players_df.copy()
         if display_team_filter != 'All Teams':
-            team_id = teams_df[teams_df['name'] == display_team_filter]['id'].iloc[0]
+            team_data = teams_df[teams_df['name'] == display_team_filter].iloc[0]
+            team_id = int(team_data['id'])
             display_stats = display_stats[display_stats['team_id'] == team_id]
 
         if not display_stats.empty:

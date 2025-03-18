@@ -37,19 +37,14 @@ def init_db():
 
 def get_teams():
     with get_db_connection() as conn:
-        teams = pd.read_sql_query("""
-            SELECT *, ROWID as idx 
-            FROM teams 
-            ORDER BY name
-        """, conn)
+        teams = pd.read_sql_query("SELECT * FROM teams ORDER BY name", conn)
         return teams
 
 def get_players():
     with get_db_connection() as conn:
         players = pd.read_sql_query("""
             SELECT 
-                players.*, 
-                players.ROWID as idx,
+                players.*,
                 teams.name as team_name 
             FROM players 
             LEFT JOIN teams ON players.team_id = teams.id
@@ -110,13 +105,9 @@ def update_player_stats(player_id, goals, assists):
 
 def get_player_stats(player_id):
     with get_db_connection() as conn:
-        result = pd.read_sql_query("""
-            SELECT goals, assists 
-            FROM players 
-            WHERE id=?
-        """, conn, params=(player_id,))
-
-        if result.empty:
+        c = conn.cursor()
+        c.execute("SELECT goals, assists FROM players WHERE id = ?", (player_id,))
+        result = c.fetchone()
+        if result is None:
             raise ValueError(f"No player found with ID {player_id}")
-
-        return result.iloc[0].to_dict()
+        return {"goals": result[0], "assists": result[1]}

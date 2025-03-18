@@ -38,7 +38,7 @@ def quick_match_update():
 
     try:
         # Initialize session state for scorers and assists
-        for i in range(10):  # Pre-initialize for up to 10 goals per team
+        for i in range(max(int(team1_score), int(team2_score))):
             if f'home_scorer_{i}' not in st.session_state:
                 st.session_state[f'home_scorer_{i}'] = None
             if f'home_assist_{i}' not in st.session_state:
@@ -132,51 +132,61 @@ def quick_match_update():
 
                     # Update player statistics
                     for i in range(int(team1_score)):
-                        scorer_name = st.session_state[f'home_scorer_{i}']
-                        assister_name = st.session_state[f'home_assist_{i}']
+                        scorer_name = st.session_state.get(f'home_scorer_{i}')
+                        assister_name = st.session_state.get(f'home_assist_{i}')
 
-                        # Update scorer
-                        scorer = team1_players[team1_players['name'] == scorer_name].iloc[0]
-                        current_stats = get_player_stats(int(scorer['id']))
-                        update_player_stats(
-                            int(scorer['id']),
-                            current_stats['goals'] + 1,
-                            current_stats['assists']
-                        )
+                        if scorer_name:
+                            # Update scorer
+                            scorer_data = team1_players[team1_players['name'] == scorer_name]
+                            if not scorer_data.empty:
+                                scorer = scorer_data.iloc[0]
+                                current_stats = get_player_stats(int(scorer['id']))
+                                update_player_stats(
+                                    int(scorer['id']),
+                                    current_stats['goals'] + 1,
+                                    current_stats['assists']
+                                )
 
-                        # Update assister if any
-                        if assister_name != 'No Assist':
-                            assister = team1_players[team1_players['name'] == assister_name].iloc[0]
-                            current_stats = get_player_stats(int(assister['id']))
-                            update_player_stats(
-                                int(assister['id']),
-                                current_stats['goals'],
-                                current_stats['assists'] + 1
-                            )
+                            # Update assister if any
+                            if assister_name and assister_name != 'No Assist':
+                                assister_data = team1_players[team1_players['name'] == assister_name]
+                                if not assister_data.empty:
+                                    assister = assister_data.iloc[0]
+                                    current_stats = get_player_stats(int(assister['id']))
+                                    update_player_stats(
+                                        int(assister['id']),
+                                        current_stats['goals'],
+                                        current_stats['assists'] + 1
+                                    )
 
                     # Update away team scorers and assisters
                     for i in range(int(team2_score)):
-                        scorer_name = st.session_state[f'away_scorer_{i}']
-                        assister_name = st.session_state[f'away_assist_{i}']
+                        scorer_name = st.session_state.get(f'away_scorer_{i}')
+                        assister_name = st.session_state.get(f'away_assist_{i}')
 
-                        # Update scorer
-                        scorer = team2_players[team2_players['name'] == scorer_name].iloc[0]
-                        current_stats = get_player_stats(int(scorer['id']))
-                        update_player_stats(
-                            int(scorer['id']),
-                            current_stats['goals'] + 1,
-                            current_stats['assists']
-                        )
+                        if scorer_name:
+                            # Update scorer
+                            scorer_data = team2_players[team2_players['name'] == scorer_name]
+                            if not scorer_data.empty:
+                                scorer = scorer_data.iloc[0]
+                                current_stats = get_player_stats(int(scorer['id']))
+                                update_player_stats(
+                                    int(scorer['id']),
+                                    current_stats['goals'] + 1,
+                                    current_stats['assists']
+                                )
 
-                        # Update assister if any
-                        if assister_name != 'No Assist':
-                            assister = team2_players[team2_players['name'] == assister_name].iloc[0]
-                            current_stats = get_player_stats(int(assister['id']))
-                            update_player_stats(
-                                int(assister['id']),
-                                current_stats['goals'],
-                                current_stats['assists'] + 1
-                            )
+                            # Update assister if any
+                            if assister_name and assister_name != 'No Assist':
+                                assister_data = team2_players[team2_players['name'] == assister_name]
+                                if not assister_data.empty:
+                                    assister = assister_data.iloc[0]
+                                    current_stats = get_player_stats(int(assister['id']))
+                                    update_player_stats(
+                                        int(assister['id']),
+                                        current_stats['goals'],
+                                        current_stats['assists'] + 1
+                                    )
 
                     st.success("Match result updated successfully!")
                     st.rerun()
@@ -236,7 +246,7 @@ def team_management_section():
 
     # Display team standings (visible to all)
     st.subheader("Team Standings")
-    teams_df = get_teams()
+    teams_df = get_teams()  # Refresh data
     if not teams_df.empty:
         with st.spinner("Loading team statistics..."):
             teams_df['Points'] = teams_df['wins'] * 3 + teams_df['draws']
@@ -251,13 +261,3 @@ def team_management_section():
             )
     else:
         st.info("No teams found. Please contact an administrator to add teams.")
-
-# Dummy auth module - Replace with your actual authentication logic
-class auth:
-    def require_admin(func):
-        def wrapper(*args, **kwargs):
-            if st.session_state.get('user_role') == 'admin':
-                return func(*args, **kwargs)
-            else:
-                st.error("You do not have permission to access this section.")
-        return wrapper
