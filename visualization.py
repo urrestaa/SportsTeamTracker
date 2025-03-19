@@ -1,3 +1,4 @@
+from pyarrow import null
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
@@ -112,15 +113,25 @@ def visualization_section():
             )
 
             filtered_stats = players_df.copy()
+            matches_played = 0
             if selected_team != 'All Teams':
                 team_data = teams_df[teams_df['name'] == selected_team].iloc[0]
                 filtered_stats = filtered_stats[filtered_stats['team_id'] == int(team_data['id'])]
 
+                matches_played = team_data['matchesPlayed']
+
             if not filtered_stats.empty:
                 filtered_stats = filtered_stats.sort_values('Total Contributions', ascending=False)
 
+                filtered_stats["Name"] = filtered_stats["name"]
+                filtered_stats["Team Name"] = filtered_stats["team_name"]
+                filtered_stats["Matches Played"] = matches_played
+                filtered_stats["Goals"] = filtered_stats["goals"]
+                filtered_stats["Assists"] = filtered_stats["assists"]
+                filtered_stats["Total Contributions"] = filtered_stats["Total Contributions"]
+
                 st.dataframe(
-                    filtered_stats[['name', 'team_name', 'goals', 'assists', 'Total Contributions']],
+                    filtered_stats[['Name', 'Team Name', 'Matches Played', 'Goals', 'Assists', 'Total Contributions']],
                     hide_index=True,
                     use_container_width=True
                 )

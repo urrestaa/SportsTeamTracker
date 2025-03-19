@@ -58,7 +58,6 @@ def quick_match_update():
 
             if not team1_players.empty:
                 # Create a table-like interface for quick updates
-                st.write("Click + to add goals/assists")
                 for _, player in team1_players.iterrows():
                     # Initialize player-specific stats if not exists
                     if f"goals_{player['id']}_home" not in st.session_state:
@@ -94,8 +93,44 @@ def quick_match_update():
                     with col6:
                         st.write(f"G: {st.session_state[f'goals_{player.id}_home']} | A: {st.session_state[f'assists_{player.id}_home']}")
 
+        with st.expander(f"{team2} - Player Stats", expanded=True):
             team2_players = players_df[players_df['team_id'] == int(team2_data['id'])]
-                
+
+            if not team2_players.empty:
+                for _, player in team2_players.iterrows():
+                    # Initialize player-specific stats if not exists
+                    if f"goals_{player['id']}_away" not in st.session_state:
+                        st.session_state[f"goals_{player['id']}_away"] = 0
+                    if f"assists_{player['id']}_away" not in st.session_state:
+                        st.session_state[f"assists_{player['id']}_away"] = 0
+
+                    col1, col2, col3, col4, col5, col6 = st.columns([3, 1, 1, 1, 1, 2])
+
+                    with col1:
+                        st.write(player['name'])
+
+                    with col2:
+                        if st.button("+G", key=f"addgoal_{player['id']}_away"):
+                            st.session_state[f"goals_{player['id']}_away"] = clamp(st.session_state[f"goals_{player['id']}_away"] + 1, 0, team2_score)
+                            st.rerun()
+
+                    with col3:
+                        if st.button("-G", key=f"substractgoal_{player['id']}_away"):
+                            st.session_state[f"goals_{player['id']}_home"] = clamp(st.session_state[f"goals_{player['id']}_away"] - 1, 0, team2_score)
+                            st.rerun()
+
+                    with col4:
+                        if st.button("+A", key=f"addassist_{player['id']}_away"):
+                            st.session_state[f"assists_{player['id']}_away"] = clamp(st.session_state[f"assists_{player['id']}_away"] + 1, 0, team2_score)
+                            st.rerun()
+
+                    with col5:
+                        if st.button("-A", key=f"substractassist_{player['id']}_away"):
+                            st.session_state[f"assists_{player['id']}_away"] = clamp(st.session_state[f"assists_{player['id']}_away"] - 1, 0, team2_score)
+                            st.rerun()
+
+                    with col6:
+                        st.write(f"G: {st.session_state[f'goals_{player.id}_away']} | A: {st.session_state[f'assists_{player.id}_away']}")
         
         """
         with st.expander(f"{team1} - Player Stats", expanded=True):
@@ -300,8 +335,17 @@ def team_management_section():
             teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'].where(teams_df['Matches'] > 0, 1) * 100).round(2)
 
             standings = teams_df.sort_values('Points', ascending=False)
+
+            standings['Name'] = standings['name']
+            standings['Matches Played'] = teams_df['matchesPlayed']
+            standings['Wins'] = standings['wins']
+            standings['Draws'] = standings['draws']
+            standings['Losses'] = standings['losses']
+            standings['Points'] = standings['Points']
+            standings['Win %'] = standings['Win Rate']
+            
             st.dataframe(
-                standings[['name', 'wins', 'draws', 'losses', 'Points', 'Win Rate']],
+                standings[['Name', 'Matches Played', 'Wins', 'Draws', 'Losses', 'Points', 'Win %']],
                 hide_index=True,
                 use_container_width=True
             )

@@ -98,24 +98,49 @@ def player_management_section():
     with st.spinner("Loading player statistics..."):
         # Filter and display statistics
         display_stats = players_df.copy()
+
         if display_team_filter != 'All Teams':
             team_data = teams_df[teams_df['name'] == display_team_filter].iloc[0]
             team_id = int(team_data['id'])
             display_stats = display_stats[display_stats['team_id'] == team_id]
 
+            # All players in this team have the same matchesPlayed value
+            if 'matchesPlayed' in team_data:
+                matchesPlayed = team_data['matchesPlayed']
+            else:
+                matchesPlayed = team_data['wins'] + team_data['draws'] + team_data['losses']
+
+            display_stats['matchesPlayed'] = matchesPlayed
+        else:
+            # For "All Teams" view, create a mapping from team_id to matchesPlayed
+            team_matches = {}
+            for _, team in teams_df.iterrows():
+                if 'matchesPlayed' in team:
+                    team_matches[team['id']] = team['matchesPlayed']
+                else:
+                    team_matches[team['id']] = team['wins'] + team['draws'] + team['losses']
+
+            # Map team_id to matchesPlayed for each player
+            display_stats['matchesPlayed'] = display_stats['team_id'].map(team_matches).fillna(0).astype(int)
+
         if not display_stats.empty:
             # Calculate total contributions
+            display_stats['Name'] = display_stats['name']
+            display_stats['Team Name'] = display_stats['team_name']
+            display_stats['Matches Played'] = display_stats['matchesPlayed'].astype(int)
+            display_stats['Goals'] = display_stats['goals']
+            display_stats['Assists'] = display_stats['assists']
             display_stats['Total Contributions'] = display_stats['goals'] + display_stats['assists']
 
             # Sort players by goals, then assists
             display_stats = display_stats.sort_values(
-                ['goals', 'assists', 'Total Contributions'],
+                ['Goals', 'Assists', 'Total Contributions'],
                 ascending=[False, False, False]
             )
 
             # Display statistics
             st.dataframe(
-                display_stats[['name', 'team_name', 'goals', 'assists', 'Total Contributions']],
+                display_stats[['Name', 'Team Name', 'Matches Played', 'Goals', 'Assists', 'Total Contributions']],
                 hide_index=True,
                 use_container_width=True
             )
