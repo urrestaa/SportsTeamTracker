@@ -13,6 +13,7 @@ plotly = ">=6.0.1"
 pandas = ">=2.2.3"
 python-jose = {version = ">=3.4.0", extras = ["pycryptodome"]}
 bcrypt = ">=4.3.0"
+flask = ">=2.0.1"
 
 [build-system]
 requires = ["poetry-core"]

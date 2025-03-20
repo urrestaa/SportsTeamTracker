@@ -4,8 +4,10 @@ from team_management import team_management_section
 from player_management import player_management_section
 from visualization import visualization_section
 from auth import init_auth, check_auth, logout
+from keep_alive import keep_alive
 
 # Initialize the database and auth
+keep_alive()
 init_db()
 init_auth()
 
