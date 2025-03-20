@@ -23,7 +23,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 streamlit = ">=1.43.2"
-python-jose = {version = ">=3.4.0", extras = ["cryptography"]}
 pyarrow = ">=19.0.1"
 plotly = ">=6.0.1"
 pandas = ">=2.2.3"
