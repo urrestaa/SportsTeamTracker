@@ -30,8 +30,7 @@ def visualization_section():
             st.plotly_chart(fig_points, use_container_width=True)
 
             # Win Rate Chart with improved mobile layout
-            teams_df['Matches'] = teams_df['wins'] + teams_df['draws'] + teams_df['losses']
-            teams_df['Win Rate'] = (teams_df['wins'] / teams_df['Matches'] * 100).round(2)
+            teams_df['Win Rate'] = ((teams_df['wins'] / teams_df['matchesPlayed']) * 100).round(0)
             fig_winrate = px.pie(teams_df, 
                               values='Win Rate', 
                               names='name',
