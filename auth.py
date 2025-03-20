@@ -1,8 +1,9 @@
 import streamlit as st
 import bcrypt
-import jwt
+import json
 from datetime import datetime, timedelta
 from typing import Optional
+from jose import JWTError, jwt
 
 # Secret key for JWT encoding/decoding
 SECRET_KEY = "your-secret-key-stored-securely"
