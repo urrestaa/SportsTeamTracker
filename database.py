@@ -4,8 +4,12 @@ from contextlib import contextmanager
 
 @contextmanager
 def get_db_connection():
+    """
+    Context manager for SQLite Cloud database connection.
+    Handles connection, commit/rollback, and closing.
+    """
+    # Replace with your actual SQLite Cloud connection string
     conn = sqlitecloud.connect("sqlitecloud://cdjgp22tnk.g3.sqlite.cloud:8860/sports_stats.db?apikey=dyN479x8iljSx7MnfgOKz3DheG0jLXXwHBOisOQb6L8")
-
     try:
         yield conn
         conn.commit()
@@ -16,18 +20,18 @@ def get_db_connection():
         conn.close()
 
 def init_db():
+    """Initialize database tables if they don't exist."""
     with get_db_connection() as conn:
-        cursor = conn.execute('SELECT * FROM <tablename>;')
-        # Create teams table if it doesn't exist
-        c.execute('''CREATE TABLE IF NOT EXISTS teams
+        # SQLite Cloud uses execute instead of cursor()
+        conn.execute('''CREATE TABLE IF NOT EXISTS teams
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                       name TEXT UNIQUE,
                       wins INTEGER DEFAULT 0,
                       draws INTEGER DEFAULT 0,
                       losses INTEGER DEFAULT 0,
                       matchesPlayed INTEGER DEFAULT 0)''')
-        # Create players table if it doesn't exist
-        c.execute('''CREATE TABLE IF NOT EXISTS players
+        
+        conn.execute('''CREATE TABLE IF NOT EXISTS players
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                       name TEXT,
                       team_id INTEGER,
@@ -35,36 +39,39 @@ def init_db():
                       assists INTEGER DEFAULT 0,
                       FOREIGN KEY (team_id) REFERENCES teams (id))''')
 
-# One-time migration function to add matchesPlayed column if it doesn't exist
 def migrate_database():
+    """
+    One-time migration function to add matchesPlayed column if it doesn't exist.
+    Adapted for SQLite Cloud's execution method.
+    """
     with get_db_connection() as conn:
-        cursor = conn.execute('SELECT * FROM <tablename>;')
-        # Check if matchesPlayed column exists
-        c.execute("PRAGMA table_info(teams)")
-        columns = [column[1] for column in c.fetchall()]
+        # Check column existence
+        columns_result = conn.execute("PRAGMA table_info(teams)")
+        columns = [column[1] for column in columns_result.fetchall()]
 
         if 'matchesPlayed' not in columns:
             # Add matchesPlayed column
-            c.execute("ALTER TABLE teams ADD COLUMN matchesPlayed INTEGER DEFAULT 0")
+            conn.execute("ALTER TABLE teams ADD COLUMN matchesPlayed INTEGER DEFAULT 0")
             # Update existing records
-            c.execute("UPDATE teams SET matchesPlayed = wins + draws + losses")
+            conn.execute("UPDATE teams SET matchesPlayed = wins + draws + losses")
             return True
         return False
 
 def get_teams():
-    # Ensure migration has been run
+    """Retrieve all teams, ensuring migration has been run."""
     migrate_database()
 
     with get_db_connection() as conn:
-        teams = pd.read_sql_query("SELECT * FROM teams ORDER BY name", conn)
+        # Use pandas read_sql method with SQLite Cloud connection
+        teams = pd.read_sql("SELECT * FROM teams ORDER BY name", conn)
         return teams
 
 def get_players():
-    # Ensure migration has been run
+    """Retrieve all players with team information."""
     migrate_database()
 
     with get_db_connection() as conn:
-        players = pd.read_sql_query("""
+        players = pd.read_sql("""
             SELECT 
                 players.*,
                 teams.name as team_name,
@@ -79,58 +86,70 @@ def get_players():
         return players
 
 def add_team(name):
+    """Add a new team to the database."""
     with get_db_connection() as conn:
-        c = conn.execute('SELECT * FROM <tablename>;')
         try:
-            c.execute("INSERT INTO teams (name, wins, draws, losses, matchesPlayed) VALUES (?, 0, 0, 0, 0)", (name,))
+            conn.execute("INSERT INTO teams (name, wins, draws, losses, matchesPlayed) VALUES (?, 0, 0, 0, 0)", (name,))
             return True
-        except sqlite3.IntegrityError:
+        except sqlitecloud.Error:
             return False
 
 def update_team_stats(team_id, wins, draws, losses):
+    """Update team statistics."""
     with get_db_connection() as conn:
-        c = conn.execute('SELECT * FROM <tablename>;')
-        # First verify the team exists
-        c.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
-        if not c.fetchone():
+        # Verify team exists
+        result = conn.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
+        if not result.fetchone():
             raise ValueError(f"No team found with ID {team_id}")
-        c.execute("""
+        
+        conn.execute("""
             UPDATE teams 
             SET wins=?, draws=?, losses=?, matchesPlayed=?
             WHERE id=?
         """, (wins, draws, losses, wins+draws+losses, team_id))
 
 def add_player(name, team_id):
+    """Add a new player to a team."""
     with get_db_connection() as conn:
-        c = conn.execute('SELECT * FROM <tablename>;')
-        # First verify the team exists
-        c.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
-        if not c.fetchone():
+        # Verify team exists
+        result = conn.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
+        if not result.fetchone():
             raise ValueError(f"No team found with ID {team_id}")
-        c.execute("""
+        
+        conn.execute("""
             INSERT INTO players (name, team_id, goals, assists) 
             VALUES (?, ?, 0, 0)
         """, (name, team_id))
-        return c.lastrowid
+        
+        # Fetch the last inserted row ID
+        result = conn.execute("SELECT last_insert_rowid()")
+        return result.fetchone()[0]
 
 def update_player_stats(player_id, goals, assists):
+    """Update player statistics."""
     with get_db_connection() as conn:
-        c = conn.execute('SELECT * FROM <tablename>;')
-        # First verify the player exists
-        c.execute("SELECT id FROM players WHERE id = ?", (player_id,))
-        if not c.fetchone():
+        # Verify player exists
+        result = conn.execute("SELECT id FROM players WHERE id = ?", (player_id,))
+        if not result.fetchone():
             raise ValueError(f"No player found with ID {player_id}")
-        c.execute("""
+        
+        conn.execute("""
             UPDATE players 
             SET goals=?, assists=? 
             WHERE id=?
         """, (goals, assists, player_id))
 
 def get_player_stats(player_id):
+    """Retrieve player statistics."""
     with get_db_connection() as conn:
-        c = conn.execute('SELECT * FROM <tablename>;')
-        c.execute("SELECT goals, assists FROM players WHERE id = ?", (player_id,))
-        result = c.fetchone()
-        if result is None:
+        result = conn.execute("SELECT goals, assists FROM players WHERE id = ?", (player_id,))
+        row = result.fetchone()
+        
+        if row is None:
             raise ValueError(f"No player found with ID {player_id}")
-        return {"goals": result[0], "assists": result[1]}
+        
+        return {"goals": row[0], "assists": row[1]}
+
+# Optional: Initialization call
+if __name__ == "__main__":
+    init_db()
