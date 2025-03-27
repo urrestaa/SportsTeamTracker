@@ -4,6 +4,29 @@ import plotly.express as px
 import plotly.graph_objects as go
 from database import get_teams, get_players
 
+def create_goal_scoring_percentage_graph(players_df):
+    # Calculate goal-scoring percentage
+    players_df['Goal Scoring Percentage'] = (players_df['goals'] > 0).astype(int) * 100
+    
+    # Create a pie chart to show goal scorers vs non-scorers
+    goal_scorers = players_df.groupby('Goal Scoring Percentage').size().reset_index(name='count')
+    goal_scorers['Status'] = goal_scorers['Goal Scoring Percentage'].apply(lambda x: 'Goal Scorers' if x > 0 else 'Non-Scorers')
+    
+    fig = px.pie(
+        goal_scorers, 
+        values='count', 
+        names='Status',
+        title='Percentage of Players Who Scored Goals',
+        color_discrete_sequence=['#1f77b4', '#ff7f0e']
+    )
+    
+    fig.update_layout(
+        height=400,
+        margin=dict(l=10, r=10, t=40, b=10)
+    )
+    
+    return fig
+
 def visualization_section():
     st.header("Statistics Visualization")
 
@@ -99,6 +122,8 @@ def visualization_section():
                 showlegend=False
             )
             st.plotly_chart(fig_contributions, use_container_width=True)
+
+            st.plotly_chart(create_goal_scoring_percentage_graph(players_df), use_container_width=True)
 
             # Team-wise Player Stats
             st.subheader("Team-wise Player Statistics")
