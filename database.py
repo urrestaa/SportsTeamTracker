@@ -1,10 +1,10 @@
-import sqlite3
+import sqlitecloud
 import pandas as pd
 from contextlib import contextmanager
 
 @contextmanager
 def get_db_connection():
-    conn = sqlite3.connect('sports_stats.db')
+    conn = sqlitecloud.connect("sqlitecloud://cdjgp22tnk.g3.sqlite.cloud:8860/edge.sqlitecloud?apikey=dyN479x8iljSx7MnfgOKz3DheG0jLXXwHBOisOQb6L8")
     try:
         yield conn
         conn.commit()
@@ -16,7 +16,7 @@ def get_db_connection():
 
 def init_db():
     with get_db_connection() as conn:
-        c = conn.cursor()
+        cursor = conn.execute('SELECT * FROM <tablename>;')
         # Create teams table if it doesn't exist
         c.execute('''CREATE TABLE IF NOT EXISTS teams
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +37,7 @@ def init_db():
 # One-time migration function to add matchesPlayed column if it doesn't exist
 def migrate_database():
     with get_db_connection() as conn:
-        c = conn.cursor()
+        cursor = conn.execute('SELECT * FROM <tablename>;')
         # Check if matchesPlayed column exists
         c.execute("PRAGMA table_info(teams)")
         columns = [column[1] for column in c.fetchall()]
@@ -79,7 +79,7 @@ def get_players():
 
 def add_team(name):
     with get_db_connection() as conn:
-        c = conn.cursor()
+        c = conn.execute('SELECT * FROM <tablename>;')
         try:
             c.execute("INSERT INTO teams (name, wins, draws, losses, matchesPlayed) VALUES (?, 0, 0, 0, 0)", (name,))
             return True
@@ -88,7 +88,7 @@ def add_team(name):
 
 def update_team_stats(team_id, wins, draws, losses):
     with get_db_connection() as conn:
-        c = conn.cursor()
+        c = conn.execute('SELECT * FROM <tablename>;')
         # First verify the team exists
         c.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
         if not c.fetchone():
@@ -101,7 +101,7 @@ def update_team_stats(team_id, wins, draws, losses):
 
 def add_player(name, team_id):
     with get_db_connection() as conn:
-        c = conn.cursor()
+        c = conn.execute('SELECT * FROM <tablename>;')
         # First verify the team exists
         c.execute("SELECT id FROM teams WHERE id = ?", (team_id,))
         if not c.fetchone():
@@ -114,7 +114,7 @@ def add_player(name, team_id):
 
 def update_player_stats(player_id, goals, assists):
     with get_db_connection() as conn:
-        c = conn.cursor()
+        c = conn.execute('SELECT * FROM <tablename>;')
         # First verify the player exists
         c.execute("SELECT id FROM players WHERE id = ?", (player_id,))
         if not c.fetchone():
@@ -127,7 +127,7 @@ def update_player_stats(player_id, goals, assists):
 
 def get_player_stats(player_id):
     with get_db_connection() as conn:
-        c = conn.cursor()
+        c = conn.execute('SELECT * FROM <tablename>;')
         c.execute("SELECT goals, assists FROM players WHERE id = ?", (player_id,))
         result = c.fetchone()
         if result is None:
