@@ -4,7 +4,8 @@ from contextlib import contextmanager
 
 @contextmanager
 def get_db_connection():
-    conn = sqlitecloud.connect("sqlitecloud://cdjgp22tnk.g3.sqlite.cloud:8860/edge.sqlitecloud?apikey=dyN479x8iljSx7MnfgOKz3DheG0jLXXwHBOisOQb6L8")
+    conn = sqlitecloud.connect("sqlitecloud://cdjgp22tnk.g3.sqlite.cloud:8860/sports_stats.db?apikey=dyN479x8iljSx7MnfgOKz3DheG0jLXXwHBOisOQb6L8")
+
     try:
         yield conn
         conn.commit()
