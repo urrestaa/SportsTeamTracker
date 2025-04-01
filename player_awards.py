@@ -19,7 +19,7 @@ def load_player_awards():
 
     st.subheader("Septiembre 2025")
 
-    st.subheader("Agosto 2025")
+    st.subheader("Octubre 2025")
 
     st.subheader("Noviembre 2025")
 
