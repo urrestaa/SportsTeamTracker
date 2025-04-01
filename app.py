@@ -2,6 +2,7 @@ import streamlit as st
 from database import init_db
 from team_management import team_management_section
 from player_management import player_management_section
+from player_awards import load_player_awards
 from visualization import visualization_section
 from auth import init_auth, check_auth, logout
 from keep_alive import keep_alive
@@ -32,12 +33,14 @@ if st.session_state.authenticated:
 
     # Navigation
     page = st.sidebar.radio("Navigation", 
-        ["Overview", "Team Management", "Player Management"])
+        ["Overview", "Team Management", "Player Management", "Player Awards"])
 
     # Display the selected section
     if page == "Overview":
         visualization_section()
     elif page == "Team Management":
         team_management_section()
-    else:
+    elif page == "Player Management":
         player_management_section()
+    else:
+        load_player_awards()
