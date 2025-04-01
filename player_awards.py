@@ -5,4 +5,4 @@ def load_player_awards():
 
     st.subheader("Marzo 2025")
 
-    st.image("img/Marzo2025", caption="Marzo 2025 POTM")
+    st.image("img/Marzo2025.png", caption="Marzo 2025 POTM")
