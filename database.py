@@ -9,7 +9,7 @@ def get_db_connection():
     Handles connection, commit/rollback, and closing.
     """
     # Replace with your actual SQLite Cloud connection string
-    conn = sqlitecloud.connect("sqlitecloud://chfuvu7zdk.g1.sqlite.cloud:8860?apikey=YNxmQNnswG3carPYmAGnv96VTMqt5CEXcGpuHlU6VDw")
+    conn = sqlitecloud.connect("sqlitecloud://chfuvu7zdk.g1.sqlite.cloud:8860/sports_stats?apikey=YNxmQNnswG3carPYmAGnv96VTMqt5CEXcGpuHlU6VDw")
     try:
         yield conn
         conn.commit()
